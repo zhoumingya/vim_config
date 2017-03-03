@@ -1,0 +1,9 @@
+#!/bin/bash
+
+path=$(dirname $0)
+path=${path/\./$(pwd)}
+echo $path
+
+ln -s ${path}/.vim ~/.vim
+ln -s ${path}/.vimrc ~/.vimrc
+ln -s ${path}/.vimrc.ext ~/.vimrc.ext
