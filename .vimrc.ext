@@ -1,0 +1,697 @@
+" Vim profile.
+" Author: Peter Odding <peter@peterodding.com>
+" Last Change: May 29, 2016
+" URL: http://peterodding.com/code/vim/profile/vimrc
+
+" Enable syntax highlighting.
+syntax on
+
+" Enable file-type detection and file-type (indentation) plug-ins.
+filetype plugin indent on
+
+" Global options for Vim. {{{1
+
+set autoread
+set completeopt=menu
+set display=lastline showbreak=>>>\
+"set ignorecase smartcase infercase
+set incsearch
+set linebreak nojoinspaces
+set modeline
+set path=.,~/.vim/** suffixesadd=.vim
+set ruler
+"set tabpagemax=25
+"set tabstop=2 shiftwidth=2
+set tags=./.tags;
+
+" Can't live with it, can't live without it:
+" http://groups.google.com/group/vim_dev/browse_thread/thread/dc24d36b9eee0b35
+"set autochdir
+
+" When Vim wraps underlined text for display the underline continues in the
+" empty space at the end of the line. This bothers me about hyperlinks because
+" they get very long. Since hyperlinks don't contain whitespace the following
+" is a reasonable workaround:
+set breakat=\
+
+" Do use the currently active spell checking for completion though!
+" (I love this feature :-)
+set complete+=kspell
+
+" Don't complete tags because my "easytags.vim" plug-in makes my tags file grow
+" pretty big and it slows Vim down to scan it each time I complete…
+set complete-=t
+
+" Make Vim a bit more GUI friendly, see
+" http://groups.google.com/group/vim_dev/browse_frm/thread/2091f334b792c10a/
+set confirm
+
+" I've grown so tired of <Tab> that I've decided to ban it from my source code,
+" mostly because of indentation sensitive source code like Python.
+set expandtab
+
+" Make Vim open and close folded text as needed because I can't be bothered to
+" do so myself and wouldn't use text folding at all if it wasn't automatic.
+set foldmethod=marker foldopen=all,insert foldclose=all
+
+" Remember the last 5000 commands and search patterns in ~/.viminfo.
+set history=5000 viminfo='250,<0,r/tmp
+
+" Highlight matches for last used search pattern.
+set hlsearch
+
+" I don't use hidden buffers much but I do keep several Vim sessions around
+" using :mksession, and the number of loaded buffers in those tends to only
+" grow without this :-)
+set ssop-=buffers
+
+" Enable enhanced command line completion.
+set wildmenu wildmode=list:full
+
+" Ignore these filenames during enhanced command line completion.
+set wildignore+=*.aux,*.out,*.toc " LaTeX intermediate files
+set wildignore+=*.jpg,*.bmp,*.gif " binary images
+set wildignore+=*.luac " Lua byte code
+set wildignore+=*.o,*.obj,*.exe,*.dll,*.manifest " compiled object files
+set wildignore+=*.pyc " Python byte code
+set wildignore+=*.spl " compiled spelling word lists
+set wildignore+=*.sw? " Vim swap files
+
+if has('gui_running')
+  " Only highlight misspelled words in graphical Vim because it shows a red
+  " underline; In the console a red background color is used which I really
+  " don't like because it confuses me endlessly :-)
+  if has('unix')
+    set spell spelllang=en,nl spellcapcheck=
+  endif
+  set mousemodel=popup_setpos nomousehide
+  set go-=m go-=T go-=r go-=L
+  if has('gui_gtk2')
+    let &gfn = string#trim(system('gconftool --get /desktop/gnome/interface/monospace_font_name'))
+  elseif has('gui_win32')
+    set gfn=Consolas:h13
+  endif
+  colorscheme evening
+  runtime mswin.vim " Still haven't unlearned Ctrl-C/Ctrl-V...
+elseif $TERM =~ 'xterm\|screen'
+  " Enable 256 colors in console Vim.
+  set t_Co=256
+  " Enable the mouse in console Vim.
+  set mouse=a
+  " Set the terminal title even if it can't be restored.
+  set title
+  " colorscheme xoria256
+  " None of the cursor keys work out of the box in console Vim but once I
+  " manually fix <Up>, the other cursor keys starts working magically?! See
+  " also https://bugs.launchpad.net/ubuntu/+source/vim/+bug/491615.
+  imap <Esc>[A <Up>
+  " Support <F11> in xterm so the :Fullscreen command from my shell.vim plug-in
+  " Just Works (TM), see http://peterodding.com/code/vim/shell/
+  nmap <Esc>[23~ <F11>
+endif
+
+" Global options for syntax scripts, plug-ins, etc. {{{1
+
+" Scripts included in Vim's runtime files.
+let c_syntax_for_h = 1 " See :help ft-c-syntax
+let is_bash = 1 " See :help ft-bash-syntax
+let java_allow_cpp_keywords = 1 " See :help ft-java-syntax
+let netrw_hide = 1 " See :help netrw-hide
+let netrw_list_hide = '^\(\..\{-}\.sw.\|.\{-}\.pyc\)$'
+let python_highlight_all = 1 " See :help ft-python-syntax
+let tex_flavor = 'latex' " See :help ft-tex-plugin
+let tex_fold_enabled = 1 " See :help ft-tex-syntax
+let vimsyn_noerror = 1 " See :help g:vimsyn_noerror
+
+" Scripts downloaded from http://www.vim.org/
+let php_highlight_quotes = 1 " See http://www.vim.org/scripts/script.php?script_id=1571
+
+" Plug-ins developed by myself, see http://peterodding.com/code/vim/
+let colorschemeswitch_filter = '^\(default\|delek\|peachpuff\|ron\|zellner\|elflord\|blue\|koehler\|dual\|railscasts\)$'
+let notes_location = '/home/peter/Documenten/Notities/%s' " Unreleased plug-in for note taking in Vim.
+let balloon_syntax = 0 " Unreleased plug-in that uses Vim's balloon-eval feature.
+let shell_fullscreen_items = 'mT' " See http://peterodding.com/code/vim/shell/#shell_fullscreen_items_option
+let easytags_resolve_links = 1 " See http://peterodding.com/code/vim/easytags/#easytags_resolve_links_option
+
+" Automatic commands. {{{1
+
+autocmd FileType c setlocal cms=/*%s*/
+autocmd FileType gitcommit setlocal autoindent
+autocmd FileType sh setlocal isfname-==
+autocmd FileType sh,php setlocal textwidth=0
+autocmd BufReadPost */etc/* setlocal textwidth=0
+autocmd BufReadPost */var/log/* setlocal ft=messages
+autocmd FileType messages setlocal nowrap nomodifiable nospell
+autocmd SwapExists * let v:swapchoice = 'e'
+autocmd BufReadPost ~/.vim-plugin-tool.conf setl ft=dosini nospell
+
+" Automatically sort word lists and generate spell files.
+autocmd BufWritePre */spell/*.add %sort i
+autocmd BufWritePost */spell/*.add silent mkspell! %
+
+" Enable completion dictionaries for PHP and Python buffers.
+autocmd FileType python set complete+=k~/.vim/dict/python " isk+=.,(
+autocmd FileType php set complete+=k~/.vim/dict/php
+autocmd FileType lua set complete+=k~/.vim/dict/lua
+
+" Enable omni-completion in Python scripts.
+autocmd FileType python set omnifunc=pythoncomplete#Complete
+
+" Hide # comment markers from folded text in Python scripts.
+autocmd FileType python set commentstring=#%s
+
+" Disable syntax highlighting of the Rhythmbox music library (which is > 20M).
+" TODO Find a plug-in that does this automatically for large files?!
+autocmd BufEnter */.gnome2/rhythmbox/rhythmdb.xml syntax off
+autocmd BufLeave */.gnome2/rhythmbox/rhythmdb.xml syntax on
+
+" Use a small tab stop and shift width for the following file types.
+"autocmd FileType c,css,html,lua,vim setlocal tabstop=2 shiftwidth=2
+
+" Enable completion of auto load function names in Vim scripts.
+autocmd FileType vim setlocal iskeyword+=#
+
+" Enable clicking on hyphenated tags in Vim's help.
+" TODO Can this be considered a bug in $VIMRUNTIME/ftplugin/help.vim?!
+autocmd FileType help setlocal iskeyword+=-
+
+" Enable folding of #region markers in C# source code.
+autocmd FileType cs setl fdm=marker fmr=#region,#endregion
+
+" Enable completion of hexadecimal color codes in CSS style sheets.
+autocmd FileType css setlocal iskeyword+=#
+
+" Open tags files read-only and update the buffer when the file changes.
+autocmd FileType tags setlocal readonly
+
+" Disable text wrapping and folds in quick-fix lists, HTML files and tags files.
+autocmd FileType help,qf,tags,html,strace setlocal nowrap nofoldenable nospell
+
+" Disable my balloon evaluation plug-in in quick-fix lists and help windows.
+autocmd FileType qf,help let [b:balloon_syntax, b:balloon_tags] = [0, 0]
+
+" Resize quick-fix lists to their contents but don't make them too big.
+autocmd FileType qf execute 'resize' min([&lines / 2, line('$')])
+
+" Use text background color for non text area as well.
+autocmd ColorScheme * highlight NonText guibg=bg
+
+" Really ignore the "Ignore" highlighting group!
+autocmd ColorScheme * highlight Ignore guifg=bg
+
+" Automatically make files in ~/bin/ executable. {{{2
+
+if has('unix')
+  autocmd BufWritePost ~/bin/* call s:MarkExecutable()
+  function s:MarkExecutable()
+    let pathname = expand('%:p')
+    let listing = system('ls -l ' . shellescape(expand('%:p')))
+    if split(listing)[0] != '-rwxr-xr-x'
+      silent !chmod u=rwx,go=rx "%:p"
+      if v:shell_error
+        echoerr 'Failed to make ' . expand('%:p:~') . ' executable!'
+      else
+        let ft_save = &ft
+        silent edit
+        let &ft = ft_save
+      endif
+    endif
+  endfunction
+endif
+
+" Customizations for diff mode. {{{2
+
+autocmd WinEnter * if &diff | call s:DiffTweaks() | endif
+
+function s:DiffTweaks()
+  " I don't like the diff colors used by most color schemes…
+  "let diff_colors = 'default'
+  "if g:colors_name != diff_colors
+    "execute 'colorscheme' fnameescape(diff_colors)
+  "endif
+  " I use automatic text folding which kind of breaks diff mode.
+  setlocal nofoldenable
+endfunction
+
+" On-the-fly loading of project-specific tags files. {{{2
+
+" To avoid my global tags file from growing too large for Vim to be able to
+" highlight, see also http://github.com/xolox/vim-easytags/commit/92cd87df83b24e1c45b946bc9eadbe4482de12ba
+
+autocmd BufReadPost,BufWritePost * call s:LoadTagsFile()
+
+function s:LoadTagsFile()
+  if &ft == 'c' || &ft == 'cpp'
+    if search('\c\<lua_\w', 'nw') >= 1
+      setl tags+=~/.vim/tags/lua-c-api
+    endif
+    if search('^#include "vim.h"$', 'nw') >= 1
+      setl tags+=~/.vim/tags/vim-src
+    endif
+    if search('\c\<apr_\w', 'nw') >= 1
+      setl tags+=~/.vim/tags/apr-c-api
+    endif
+    if search('\c\<Py[\u_]', 'nw') >= 1
+      setl tags+=~/.vim/tags/python-c-api
+    endif
+  endif
+endfunction
+
+" Local additions to file type detection. {{{2
+
+augroup filetypedetect
+  au BufNewFile,BufRead * if getline(1) =~ '^!_TAG_' | setf tags | endif
+  au BufNewFile,BufRead *.desktop.* setf desktop
+  au BufNewFile,BufRead *.json setf javascript
+  au BufNewFile,BufRead *.list setf desktop
+  au BufNewFile,BufRead *.md set ft=mkd " override "ft=modula2"
+  au BufNewFile,BufRead *.pls setf dosini
+  au BufNewFile,BufRead *.vb set filetype=vb " override stupid "ft=conf" setting.
+  au BufNewFile,BufRead */etc/apache{,2}/*.conf setf apache
+  au BufNewFile,BufRead */etc/environment setf sh
+  au BufNewFile,BufRead */etc/mysql/*.cnf setf dosini
+  au BufNewFile,BufRead */nginx/* setf nginx
+  au BufNewFile,BufRead */sites-{available,enabled}/* setf apache
+  au BufNewFile,BufRead ~/.ctags setf sh
+  au BufNewFile,BufRead *.h setf cpp
+  au StdinReadPost,BufRead * if getline(1) =~ 'sending incremental file list' | setf rsync | endif
+  au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
+augroup END
+
+" Allow reading of PDF and Word documents. {{{2
+
+" Based on the Vim profile at http://www.noah.org/engineering/dotfiles/.vimrc
+" (thanks! :-). If you're using Ubuntu, install the "xpdf-utils" and "antiword"
+" packages.
+
+autocmd BufReadPre *.pdf,*.doc setlocal readonly
+autocmd BufReadPost *.pdf silent %!pdftotext -nopgbrk "%" - | fmt -csw78
+autocmd BufReadPost *.doc call s:WordFilter()
+
+function s:WordFilter()
+  setlocal noreadonly modifiable
+  silent %!antiword -i 1 -s -f "%" -
+  silent %s/^\s\+\.\s\+/ • /
+  setlocal readonly nomodifiable
+  setlocal filetype=antiword
+endfunction
+
+" Make the :help command a little smarter. {{{2
+
+autocmd BufEnter * call s:CloseEmptyBuffer()
+
+function s:CloseEmptyBuffer()
+  if winnr('$') == 2 && &bt == 'help'
+    let bufnr = tabpagebuflist()[1]
+    let modified = getwinvar(2, '&modified')
+    if bufname(bufnr) == '' && !modified
+      only
+    endif
+  endif
+endfunction
+
+" Adjust &tabstop for tab-delimited tags files. {{{2
+
+autocmd FileType tags call s:UpdateTabStop()
+
+function s:UpdateTabStop()
+  let width = 0
+  for values in map(getline(1, '$'), 'split(v:val, "\t")')
+    let width = max([width, strlen(get(values, 0, ''))])
+  endfor
+  let &l:tabstop = width + 1
+endfunction
+
+" Restore cursor position in previously edited files. {{{2
+
+autocmd BufReadPost * call s:RestoreCursorPosition()
+
+function s:RestoreCursorPosition()
+  let lnum = line('''"')
+  if lnum > 0 && lnum <= line("$")
+    normal `"
+    normal zz
+  endif
+endfunction
+
+" Automatic updating of "Last Change:" comments. {{{2
+
+autocmd BufWritePre * call s:UpdateLastChangeDate()
+
+function s:UpdateLastChangeDate()
+  let pattern = '\<Last Change:\s\zs.*'
+  let lnum = match(getline(1, 10), pattern)
+  if lnum >= 0
+    let existing = getline(lnum+1)
+    let substitute = substitute(strftime('%B %e, %Y'), '\s\{2,}', ' ', 'g')
+    let updated = substitute(existing, pattern, substitute, '')
+    if updated !=# existing
+      undojoin
+      keepjumps call setline(lnum+1, updated)
+    endif
+  endif
+endfunction
+
+" I've configured my Ubuntu install to use the nl_NL locale but want strftime()
+" to generate dates in English format inside s:UpdateLastChangeDate() above.
+language C
+
+" User defined commands. {{{1
+
+command CopyFileName let @+ = expand('%:p') | echo "Copied" @+ "to clipboard"
+
+" Rename a buffer and its corresponding file. {{{2
+
+command -nargs=1 -complete=file RenameFile call s:RenameCmd(<q-args>)
+
+function s:RenameCmd(newfname)
+  let oldfname = expand('%:p')
+  let newfname = expand(a:newfname)
+  if filereadable(oldfname) && rename(oldfname, newfname)
+    call xolox#warning("Failed to rename file from `%s' to `%s'!", oldfname, newfname)
+    return
+  endif
+  execute 'saveas!' fnameescape(newfname)
+endfunction
+
+" Delete a buffer and its corresponding file. {{{2
+
+command DeleteFile call s:DeleteCmd()
+
+function s:DeleteCmd()
+  let fname = expand('%:p')
+  if filereadable(fname) && delete(fname)
+    call xolox#warning("Failed to delete file `%s'!", fname)
+    return
+  endif
+  bdelete!
+endfunction
+
+" Key mappings. {{{1
+
+" F3: Toggle folding of text without repositioning current line in window. {{{2
+
+imap <silent> <F3> <C-O>:call <Sid>ToggleFolding()<CR>
+nmap <silent> <F3> :call <Sid>ToggleFolding()<CR>
+
+function s:ToggleFolding()
+  " Save the position of the text cursor.
+  let position = getpos('.')
+  " Get the screen line of the text cursor.
+  let winline = winline()
+  " Invert text folding and wrapping.
+  setlocal invfoldenable
+  " Redraw with calculated line at top of window.
+  let firstline = line('.')
+  for i in range(winline - 1)
+    let i = foldclosed(firstline)
+    let firstline = (i != -1 ? i : firstline) - 1
+  endfor
+  execute 'normal' firstline . 'zt'
+  " Restore the position of the text cursor.
+  call setpos('.', position)
+endfunction
+
+" F5: Execute the :make command. {{{2
+
+" Bug fix: Always make sure working directory is correct!
+
+imap <silent> <F5> <C-O>:call <Sid>Reload()<CR>
+nmap <silent> <F5> :call <Sid>Reload()<CR>
+
+function s:Reload()
+  if expand('%') =~ '^sftp://'
+    " Reload remote buffer.
+    silent edit
+  else
+    " Make project.
+    echo "Running make .. "
+    silent cd %:h
+    silent! make!
+    if v:shell_error == 0
+      echo ""
+      redraw
+    else
+      echohl warningmsg
+      echomsg "Failed to execute :make .."
+      echohl none
+      redraw
+    endif
+    silent cd -
+  endif
+endfunction
+
+" C-]: Show list of matching tags when more than one tag matches <cword>. {{{2
+
+noremap <c-]> g<c-]>
+
+" "gf": Goto file in tab page instead of current window and open non-existing files. {{{2
+
+nmap gf :call <Sid>GotoFile()<CR>
+
+function s:GotoFile()
+  let fname = expand('<cfile>')
+  if fname !~ '^\w\+://'
+    " Expand &includeexpr?
+    if &includeexpr =~ '\<v:fname\>'
+      let substitute = xolox#escape#substitute(string(fname))
+      let result = eval(substitute(&inex, '\<v:fname\>', substitute, 'g'))
+      let fname = type(result) == type('') && result != '' ? result : fname
+    endif
+    " Search the Vim &path.
+    let path_elements = xolox#misc#option#split(&path)
+    if index(path_elements, '.') == -1
+      call insert(path_elements, '.')
+    endif
+    let path = xolox#misc#option#join(path_elements)
+    let names = xolox#misc#list#unique(split(globpath(path, fname), '\n'))
+    if len(names) == 1
+      let fname = names[0]
+    elseif len(names) > 1
+      call map(names, 'fnamemodify(v:val, ":~:.")')
+      let index = inputlist(sort(names))
+      if index >= 0 && index < len(names)
+        let fname = names[index]
+      endif
+    endif
+  endif
+  call s:OpenInTabPage(fname)
+endfunction
+
+function s:OpenInTabPage(fname)
+  if bufexists(a:fname)
+    try
+      let swb_save = &switchbuf
+      set switchbuf=useopen,usetab,split
+      execute 'sbuffer' fnameescape(fnamemodify(a:fname, ':p'))
+    finally
+      let &switchbuf = swb_save
+    endtry
+  else
+    " Silent because of hit-enter prompt caused by netrw.
+    silent execute 'tabnew' fnameescape(a:fname)
+  endif
+endfunction
+
+" *** {{{2
+
+imap *** <C-o>:call <Sid>AlignedDelimiter()<CR>
+
+function! <Sid>AlignedDelimiter()
+  let delimiter = '* * *'
+  let textwidth = &textwidth
+  if textwidth == 0
+    let textwidth = 80
+  endif
+  let indent = (textwidth - len(delimiter)) / 2 - 1
+  call setline('.', repeat(' ', indent) . delimiter)
+  normal o
+  normal o
+endfunction
+
+" ... {{{2
+
+"imap ... …
+
+" iabbrev ... … doesn't really work because it only triggers after a space!
+
+" Use cursor keys to move by virtual (screen) lines. {{{2
+
+inoremap <expr> <Up> pumvisible() ? "\<C-P>" : "\<C-O>gk"
+nnoremap <expr> <Up> pumvisible() ? "\<C-P>" : "gk"
+inoremap <expr> <Down> pumvisible() ? "\<C-N>" : "\<C-O>gj"
+nnoremap <expr> <Down> pumvisible() ? "\<C-N>" : "gj"
+
+" Control-Up: Move displayed lines up without moving cursor. {{{2
+
+imap <C-Up> <C-O><C-E>
+nmap <C-Up> <C-E>
+
+" Control-Down: Move displayed lines down without moving cursor. {{{2
+
+inoremap <C-Down> <C-O><C-Y>
+nnoremap <C-Down> <C-Y>
+
+" Alt-Left/Right: Goto older/newer cursor position in jump list. {{{2
+
+" FIXME: Sometimes I need to use <Alt-Left> or <Alt-Right> multiple times
+" before the text cursor position is changed.
+
+inoremap <A-Left> <C-o><C-o>
+nnoremap <A-Left> <C-o>
+inoremap <A-Right> <C-o><C-i>
+nnoremap <A-Right> <C-i>
+
+" Tab: Add one level of indent to selected lines. {{{2
+
+xmap <Tab> >0gv
+smap <Tab> <C-O>V<C-O><Tab>
+
+" Shift-Tab: Remove one level of indent from selected lines. {{{2
+
+xmap <S-Tab> <0gv
+smap <S-Tab> <C-O>V<C-O><S-Tab>
+
+" Tab: Start keyword completion after keyword characters. {{{2
+
+"inoremap <expr> <Tab> <Sid>TabComplete()
+"inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+"inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
+"inoremap <expr> <Esc> pumvisible() ? "\<C-e>" : "\<Esc>"
+
+function s:TabComplete()
+  if pumvisible()
+    " In the pop-up menu <Tab> selects the next menu item.
+    return "\<C-n>"
+  elseif search('\k\%#', 'bcn', line('.')) && getline('.') !~ '\S\t\+\S'
+    " After keyword characters <Tab> starts keyword completion, except on
+    " lines with tab-delimited fields like /etc/fstab and /etc/crypttab.
+    return "\<C-n>"
+  else
+    " In all other cases, fall back to the default behavior.
+    return "\<Tab>"
+  endif
+endfunction
+
+" Control-Shift-PageUp: Drag active tab page left. {{{2
+
+imap <C-S-PageUp> <C-O>:TabMoveLeft<CR>
+nmap <C-S-PageUp> :TabMoveLeft<CR>
+
+command -bar TML call s:TabMoveLeft()
+command -bar TabMoveLeft call s:TabMoveLeft()
+
+function s:TabMoveLeft()
+  let n = tabpagenr()
+  execute 'tabmove' (n == 1 ? '' : n - 2)
+  " Redraw tab page labels.
+  let &showtabline = &showtabline
+endfunction
+
+" Control-Shift-PageDown: Drag active tab page right. {{{2
+
+imap <C-S-PageDown> <C-O>:TabMoveRight<CR>
+nmap <C-S-PageDown> :TabMoveRight<CR>
+
+command -bar TMR call s:TabMoveRight()
+command -bar TabMoveRight call s:TabMoveRight()
+
+function s:TabMoveRight()
+  let n = tabpagenr()
+  execute 'tabmove' (n == tabpagenr('$') ? 0 : n)
+  " Redraw tab page labels.
+  let &showtabline = &showtabline
+endfunction
+
+" Insert mode abbreviations. {{{1
+
+" I hate entering dots in abbreviations manually :-)
+"iabbrev aub a.u.b.
+"iabbrev svp s.v.p.
+
+" Define Dutch abbreviations with capitalized variants.
+" (improvised &infercase for insert mode abbreviations)
+
+function s:DefCapAbbr(abbr, exp)
+  execute 'iabbrev' a:abbr a:exp
+  execute 'iabbrev' s:UcFirst(a:abbr) s:UcFirst(a:exp)
+endfunction
+
+function s:UcFirst(s)
+  return substitute(a:s, '^\l', '\u\0', '')
+endfunction
+
+"call s:DefCapAbbr('bv', 'bijvoorbeeld')
+"call s:DefCapAbbr('dmv', 'door middel van')
+"call s:DefCapAbbr('dwz', 'dat wil zeggen')
+"call s:DefCapAbbr('icm', 'in combinatie met')
+"call s:DefCapAbbr('idd', 'inderdaad')
+"call s:DefCapAbbr('iig', 'in ieder geval')
+"call s:DefCapAbbr('iii', 'in eerste instantie')
+"call s:DefCapAbbr('ipd', 'in plaats daarvan')
+"call s:DefCapAbbr('ipv', 'in plaats van')
+"call s:DefCapAbbr('mbv', 'met behulp van')
+"call s:DefCapAbbr('oa', 'onder andere')
+"call s:DefCapAbbr('tov', 'ten opzichte van')
+"call s:DefCapAbbr('ws', 'waarschijnlijk')
+"call s:DefCapAbbr('zsm', 'zo snel mogelijk')
+
+" Miscellaneous things. {{{1
+
+" Define a function that can be called using "gvim --remote-expr ..." to
+" change Vim's &guifont option in existing graphical Vim instances.
+
+function SetFont(s)
+  let &gfn = a:s
+  redraw
+endfunction
+
+" :set tags=~/.publish_tags
+" :let sources = '/home/peter/.vim'
+" :let target = 'sftp://peterodding.com/code/vim/profile'
+" :call Publish(sources, target, [
+"     \ 'autoload/xolox/escape.vim',
+"         \ 'autoload/xolox/path.vim',
+"             \ 'autoload/publish.vim',
+"                 \ 'plugin/publish.vim',
+"                     \ ])
+
+"call plug#begin('~/.vim/plugged')
+"
+"" Make sure you use single quotes
+"Plug 'junegunn/seoul256.vim'
+"Plug 'junegunn/vim-easy-align'
+"
+"" On-demand loading
+"Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
+"Plug 'tpope/vim-fireplace', { 'for': 'clojure' }
+"
+"" Using git URL
+"Plug 'https://github.com/junegunn/vim-github-dashboard.git'
+"
+"" Plugin options
+"Plug 'nsf/gocode', { 'tag': 'go.weekly.2012-03-13', 'rtp': 'vim' }
+"
+"" Plugin outside ~/.vim/plugged with post-update hook
+""Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': 'yes \| ./install' }
+"
+"" Unmanaged plugin (manually installed and updated)
+"Plug '~/my-prototype-plugin'
+"
+"call plug#end()
+
+execute pathogen#infect()
+
+"autocmd FileType python compiler pylint
+
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 0
+let g:syntastic_check_on_wq = 0
+let g:syntastic_quiet_messages = { "regex": 'mixed-indentation' }
+let g:syntastic_mode_map = { 'mode': 'passive' }
+cabbrev <silent> bd lclose\|bdelete
